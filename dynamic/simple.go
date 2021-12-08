@@ -60,6 +60,7 @@ func NewForConfigOrDie(c *rest.Config) Interface {
 }
 
 // NewForConfig creates a new dynamic client or returns an error.
+//创建新的动态客户端或返回错误
 func NewForConfig(inConfig *rest.Config) (Interface, error) {
 	config := ConfigFor(inConfig)
 	// for serializing the options

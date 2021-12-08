@@ -119,6 +119,8 @@ func NewForConfig(c *rest.Config) (*CoreV1Client, error) {
 	if err := setConfigDefaults(&config); err != nil {
 		return nil, err
 	}
+	//corev1.NewForConfig方法本质是调用了rest.RESTClientFor(&config)方法创建RESTClient对象，
+	//即CoreV1Client的本质就是一个RESTClient对象。
 	client, err := rest.RESTClientFor(&config)
 	if err != nil {
 		return nil, err

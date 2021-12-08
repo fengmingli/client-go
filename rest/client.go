@@ -78,6 +78,7 @@ type ClientContentConfig struct {
 // any failure.
 //
 // Most consumers should use client.New() to get a Kubernetes API client.
+//TODO RESTClient 数据结构
 type RESTClient struct {
 	// base is the root URL for all invocations of the client
 	base *url.URL
@@ -104,6 +105,7 @@ type RESTClient struct {
 
 // NewRESTClient creates a new RESTClient. This client performs generic REST functions
 // such as Get, Put, Post, and Delete on specified paths.
+//TODO RESTClient客户端核心代码
 func NewRESTClient(baseURL *url.URL, versionedAPIPath string, config ClientContentConfig, rateLimiter flowcontrol.RateLimiter, client *http.Client) (*RESTClient, error) {
 	if len(config.ContentType) == 0 {
 		config.ContentType = "application/json"

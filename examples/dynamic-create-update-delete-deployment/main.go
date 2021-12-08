@@ -45,6 +45,7 @@ import (
 )
 
 func main() {
+	//kubeconfig
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -55,6 +56,7 @@ func main() {
 
 	namespace := "default"
 
+	// rest.config
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err)
@@ -109,7 +111,10 @@ func main() {
 
 	// Create Deployment
 	fmt.Println("Creating deployment...")
-	result, err := client.Resource(deploymentRes).Namespace(namespace).Create(context.TODO(), deployment, metav1.CreateOptions{})
+	result, err := client.
+		Resource(deploymentRes).
+		Namespace(namespace).
+		Create(context.TODO(), deployment, metav1.CreateOptions{})
 	if err != nil {
 		panic(err)
 	}

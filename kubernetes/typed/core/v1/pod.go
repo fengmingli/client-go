@@ -40,6 +40,7 @@ type PodsGetter interface {
 }
 
 // PodInterface has methods to work with Pod resources.
+//处理 Pod 资源的方法。
 type PodInterface interface {
 	Create(ctx context.Context, pod *v1.Pod, opts metav1.CreateOptions) (*v1.Pod, error)
 	Update(ctx context.Context, pod *v1.Pod, opts metav1.UpdateOptions) (*v1.Pod, error)

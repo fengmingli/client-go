@@ -118,6 +118,7 @@ type Interface interface {
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
+//TODO Clientset结构体（数据结构）
 type Clientset struct {
 	*discovery.DiscoveryClient
 	admissionregistrationV1      *admissionregistrationv1.AdmissionregistrationV1Client
