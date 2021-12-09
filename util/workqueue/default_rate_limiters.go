@@ -24,6 +24,11 @@ import (
 	"golang.org/x/time/rate"
 )
 
+//RateLimiter 限速接口
+//BucketRateLimiter 令牌桶算法限速
+//ItemExponentialFailureRateLimiter 排队指数限速
+//ItemFastSlowRateLimiter 计数器模式
+//MaxOfRateLimiter 混合模式(多种限速算法同时使用)
 type RateLimiter interface {
 	// When gets an item and gets to decide how long that item should wait
 	When(item interface{}) time.Duration

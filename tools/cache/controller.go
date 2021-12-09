@@ -130,6 +130,7 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 		<-stopCh
 		c.config.Queue.Close()
 	}()
+	//创建一个Reflector
 	r := NewReflector(
 		c.config.ListerWatcher,
 		c.config.ObjectType,
@@ -150,7 +151,7 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 	var wg wait.Group
 
 	wg.StartWithChannel(stopCh, r.Run)
-
+	//循环直到通道关闭
 	wait.Until(c.processLoop, time.Second, stopCh)
 	wg.Wait()
 }
@@ -178,6 +179,7 @@ func (c *controller) LastSyncResourceVersion() string {
 // actually exit when the controller is stopped. Or just give up on this stuff
 // ever being stoppable. Converting this whole package to use Context would
 // also be helpful.
+//排空任务队列
 func (c *controller) processLoop() {
 	for {
 		obj, err := c.config.Queue.Pop(PopProcessFunc(c.config.Process))

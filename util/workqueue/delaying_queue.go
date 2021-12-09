@@ -70,6 +70,7 @@ func newDelayingQueue(clock clock.Clock, q Interface, name string) *delayingType
 }
 
 // delayingType wraps an Interface and provides delayed re-enquing
+//delayingType 延迟队列。包装一个接口并提供延迟重新入队
 type delayingType struct {
 	Interface
 
@@ -85,6 +86,7 @@ type delayingType struct {
 	heartbeat clock.Ticker
 
 	// waitingForAddCh is a buffered channel that feeds waitingForAdd
+	//放置延迟添加的元素
 	waitingForAddCh chan *waitFor
 
 	// metrics counts the number of retries

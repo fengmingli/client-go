@@ -82,6 +82,7 @@ func (f *dynamicSharedInformerFactory) ForResource(gvr schema.GroupVersionResour
 }
 
 // Start initializes all requested informers.
+//TODO 入口Start。初始化所有请求的通知者。
 func (f *dynamicSharedInformerFactory) Start(stopCh <-chan struct{}) {
 	f.lock.Lock()
 	defer f.lock.Unlock()

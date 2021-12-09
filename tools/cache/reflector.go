@@ -251,6 +251,7 @@ func (r *Reflector) resyncChan() (<-chan time.Time, func() bool) {
 // ListAndWatch first lists all items and get the resource version at the moment of call,
 // and then use the resource version to watch.
 // It returns error if ListAndWatch didn't even try to initialize watch.
+//istAndWatch首先列出所有item并获取调用时刻的资源版本，然后使用资源版本进行观看。如果 ListAndWatch 甚至没有尝试初始化 watch，它就会返回错误。
 func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	klog.V(3).Infof("Listing and watching %v from %s", r.expectedTypeName, r.name)
 	var resourceVersion string
@@ -273,6 +274,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 			}()
 			// Attempt to gather list in chunks, if supported by listerWatcher, if not, the first
 			// list request will return the full response.
+			//尝试以块的形式收集列表，如果listerWatcher 支持，如果不支持，第一个列表请求将返回完整响应。
 			pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
 				return r.listerWatcher.List(opts)
 			}))
@@ -423,7 +425,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 			}
 			return err
 		}
-
+		//监视 API 的收到关于新资源实例存在的通知时
 		if err := r.watchHandler(start, w, &resourceVersion, resyncerrc, stopCh); err != nil {
 			if err != errorStopRequested {
 				switch {
@@ -451,6 +453,7 @@ func (r *Reflector) syncWith(items []runtime.Object, resourceVersion string) err
 }
 
 // watchHandler watches w and keeps *resourceVersion up to date.
+// 监视 w 并保持 resourceVersion 是最新的。
 func (r *Reflector) watchHandler(start time.Time, w watch.Interface, resourceVersion *string, errc chan error, stopCh <-chan struct{}) error {
 	eventCount := 0
 
@@ -524,6 +527,7 @@ loop:
 	}
 
 	watchDuration := r.clock.Since(start)
+	//eventCount 等于0 则watch异常
 	if watchDuration < 1*time.Second && eventCount == 0 {
 		return fmt.Errorf("very short watch: %s: Unexpected watch close - watch lasted less than a second and no items received", r.name)
 	}

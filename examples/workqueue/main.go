@@ -123,6 +123,7 @@ func (c *Controller) Run(threadiness int, stopCh chan struct{}) {
 	defer c.queue.ShutDown()
 	klog.Info("Starting Pod controller")
 
+	//开启一个informer（controller）
 	go c.informer.Run(stopCh)
 
 	// Wait for all involved caches to be synced, before processing items from the queue is started
@@ -159,21 +160,29 @@ func main() {
 	}
 
 	// creates the clientset
+	//创建一个clientSet
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		klog.Fatal(err)
 	}
 
 	// create the pod watcher
-	podListWatcher := cache.NewListWatchFromClient(clientset.CoreV1().RESTClient(), "pods", v1.NamespaceDefault, fields.Everything())
+	podListWatcher := cache.
+		NewListWatchFromClient(clientset.
+			CoreV1().
+			RESTClient(), "pods", v1.NamespaceDefault, fields.Everything())
 
 	// create the workqueue
-	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
+	queue := workqueue.
+		NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
 	// whenever the cache is updated, the pod key is added to the workqueue.
 	// Note that when we finally process the item from the workqueue, we might see a newer version
 	// of the Pod than the version which was responsible for triggering the update.
+	//在 Informer 的帮助下将工作队列绑定到缓存。
+	//通过这种方式，我们确保每当缓存更新时，pod 键都会添加到工作队列中。
+	//请注意，当我们最终处理工作队列中的项目时，我们可能会看到比负责触发更新的版本更新的 Pod 版本。
 	indexer, informer := cache.NewIndexerInformer(podListWatcher, &v1.Pod{}, 0, cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
@@ -196,6 +205,8 @@ func main() {
 			}
 		},
 	}, cache.Indexers{})
+
+	//创建一个Controller
 
 	controller := NewController(queue, indexer, informer)
 

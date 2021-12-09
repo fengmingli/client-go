@@ -23,12 +23,19 @@ import (
 	"k8s.io/apimachinery/pkg/util/clock"
 )
 
+//Interface 基本队列
 type Interface interface {
+	// Add 新增元素 可以是任意对象
 	Add(item interface{})
+	// Len 获取当前队列的长度
 	Len() int
+	//Get 阻塞获取头部元素(先入先出)  返回元素以及队列是否关闭
 	Get() (item interface{}, shutdown bool)
+	//Done 显示标记完成元素的处理
 	Done(item interface{})
+	//ShutDown 关闭队列
 	ShutDown()
+	//ShuttingDown 队列是否处于关闭状态
 	ShuttingDown() bool
 }
 
@@ -59,6 +66,7 @@ func newQueue(c clock.Clock, metrics queueMetrics, updatePeriod time.Duration) *
 	// Don't start the goroutine for a type of noMetrics so we don't consume
 	// resources unnecessarily
 	if _, ok := metrics.(noMetrics); !ok {
+		//启动一个协程 定时更新metrics
 		go t.updateUnfinishedWorkLoop()
 	}
 
@@ -68,19 +76,23 @@ func newQueue(c clock.Clock, metrics queueMetrics, updatePeriod time.Duration) *
 const defaultUnfinishedWorkUpdatePeriod = 500 * time.Millisecond
 
 // Type is a work queue (see the package comment).
+//队列数据结构
 type Type struct {
 	// queue defines the order in which we will work on items. Every
 	// element of queue should be in the dirty set and not in the
 	// processing set.
+	//含有所有元素的元素的队列 保证有序
 	queue []t
 
 	// dirty defines all of the items that need to be processed.
+	//所有需要处理的元素 set是基于map以value为空struct实现的结构，保证去重
 	dirty set
 
 	// Things that are currently being processed are in the processing set.
 	// These things may be simultaneously in the dirty set. When we finish
 	// processing something and remove it from this set, we'll check if
 	// it's in the dirty set, and if so, add it to the queue.
+	//当前正在处理中的元素
 	processing set
 
 	cond *sync.Cond
@@ -114,16 +126,19 @@ func (s set) delete(item t) {
 func (q *Type) Add(item interface{}) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
+	//如果当前处于关闭状态,则不再新增元素
 	if q.shuttingDown {
 		return
 	}
+	//如果元素已经在等待处理中,则不再新增
 	if q.dirty.has(item) {
 		return
 	}
-
+	//添加到metrics
 	q.metrics.add(item)
-
+	//加入等待处理中
 	q.dirty.insert(item)
+	//如果目前正在处理该元素 就不将元素添加到队列
 	if q.processing.has(item) {
 		return
 	}
@@ -147,6 +162,7 @@ func (q *Type) Len() int {
 func (q *Type) Get() (item interface{}, shutdown bool) {
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
+	//如果当前没有元素并且不处于关闭状态,则阻塞
 	for len(q.queue) == 0 && !q.shuttingDown {
 		q.cond.Wait()
 	}
@@ -158,8 +174,9 @@ func (q *Type) Get() (item interface{}, shutdown bool) {
 	item, q.queue = q.queue[0], q.queue[1:]
 
 	q.metrics.get(item)
-
+	//把元素添加到正在处理队列中
 	q.processing.insert(item)
+	//把队列从等待处理队列中删除
 	q.dirty.delete(item)
 
 	return item, false
@@ -206,6 +223,7 @@ func (q *Type) updateUnfinishedWorkLoop() {
 			q.cond.L.Lock()
 			defer q.cond.L.Unlock()
 			if !q.shuttingDown {
+				//更新未完成的工作的metrics
 				q.metrics.updateUnfinishedWork()
 				return true
 			}

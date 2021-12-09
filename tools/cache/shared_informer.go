@@ -395,6 +395,7 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 	}()
 
 	// Separate stop channel because Processor should be stopped strictly after controller
+	//单独的停止通道，因为处理器应该在控制器之后严格停止
 	processorStopCh := make(chan struct{})
 	var wg wait.Group
 	defer wg.Wait()              // Wait for Processor to stop
